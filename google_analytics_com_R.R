@@ -45,7 +45,7 @@ query.list <- Init(start.date = "2017-01-01",
                    ga:totalValue",
                    max.results = 10000,
                    sort = "ga:date",
-                   table.id = "ga:xxxxxxx")
+                   table.id = "ga:136578367")
                    
 
 
@@ -172,8 +172,8 @@ sum(prevendo_totalValue)
 
 # Alterando o Valor para responder a pergunta do problema formulado
 #venda_previsto <- data.frame(x=20000)
-#y = ax + b
-(venda_previsto <- k[1]*35000 + k[2])
+#y = a + bx
+(venda_previsto <- k[1] + k[2]*15000)
 (sum(analytics$totalValue))
 (sum(analytics$adCost))
 #previsao_1 <- predict(modelo, venda_previsto)
