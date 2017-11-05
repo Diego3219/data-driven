@@ -15,8 +15,8 @@ needs(RGoogleAnalytics)
 
 # Substitua as chaves pelas que voc? gerou no projeto da API
 #https://console.developers.google.com
-client.id <-"xx"
-client.secret <-"xxx"
+client.id <-"743841725020-22q5cefd0666t724ebb1kfg4hturcl4a.apps.googleusercontent.com"
+client.secret <-"Dg94fUSt1-dCN6SLGqlYqjbB"
 token <- Auth(client.id,client.secret)
 
 # Salvar o objeto token para sess?es futuras
@@ -142,7 +142,7 @@ corrplot(data_cor, method = 'circle')
 # Alternativa de Regress?o Simples
 
 # Selecionando as v?riaveis
-a <- analytics$impressions
+a <- analytics$adClicks
 b <- analytics$totalValue
 c <- data.frame(a,b)
 
@@ -173,12 +173,170 @@ sum(prevendo_totalValue)
 # Alterando o Valor para responder a pergunta do problema formulado
 #venda_previsto <- data.frame(x=20000)
 #y = a + bx
-(venda_previsto <- k[1] + k[2]*15000)
+(venda_previsto <- k[1] + k[2]*30000)
 (sum(analytics$totalValue))
 (sum(analytics$adCost))
 #previsao_1 <- predict(modelo, venda_previsto)
 #sum(previsao_1)
 
+################################################################
+
+#Bootstrap
+
+attach(analytics)
+
+##Fazer um Bootstrap para regressão
+require(boot)
+require(bootstrap)
+index<- analytics[,1]
+
+N<-10000 #número de repetições bootstrap
+n<-500   #Tamanho da amostra
+
+b0<- rep(NA,N)
+b1<- rep(NA,N)
+
+for(i in 1:N){
+  xstar <- sample(index,n,TRUE)
+  mod<- lm(analytics$totalValue[xstar]~analytics$impressions[xstar])
+  b0[i]<- as.numeric(mod$coefficients[1])
+  b1[i]<- as.numeric(mod$coefficients[2])
+  
+}
+
+#Estimativas finais dos coeficientes de regressão
+
+mean(b0)
+mean(b1)
+
+#Fazer o ajuste do modelo
+
+###########################################################################################
+
+# Caret
+library(caret)
 
 
-# Este Modelo est? sofrendo de overfiting e precisa ser ajustado
+# Funcao do Caret para divisao dos dados
+#?createDataPartition
+split <- createDataPartition(y = analytics$totalValue , p = 0.7, list = FALSE)
+
+# Criando dados de treino e de teste
+dados_treino <- analytics[split,]
+dados_teste <- analytics[-split,]
+
+# Treinando o modelo
+#?train
+names(getModelInfo())
+
+# Regressao linear
+modelolm <- train(totalValue ~ ., data = dados_treino, method = "lm")
+
+# Regressao logistica
+modelolm2 <- train(totalValue ~ ., data = dados_treino, method = "glm")
+
+# Random forest
+modelolm3 <- train(totalValue ~ ., data = dados_treino, method = "rf")
+
+# Neural
+modelolm4 <- train(totalValue ~ ., data = dados_treino, method = "monmlp")
+
+# Multi Layer Percepton
+modelolm5 <- train(totalValue ~ ., data = dados_treino, method = "mlp")
+
+# Neural Network
+modelolm6 <- train(totalValue ~ ., data = dados_treino, method = "mxnet")
+
+# Neural Network
+modelolm7 <- train(totalValue ~ ., data = dados_treino, method = "nnet")
+
+# Deep Neural 
+modelolm8 <- train(totalValue ~ ., data = dados_treino, method = "dnn")
+
+# Stocastic Gradient Boosting
+modelolm9 <- train(totalValue ~ ., data = dados_treino, method = "gbm")
+
+# Suport Vector Machine
+modelolm10 <- train(totalValue ~ ., data = dados_treino, method = "svmLinear")
+
+# Resumo do modelo
+summary(modelolm)
+summary(modelolm2)
+summary(modelolm3)
+summary(modelolm7)
+summary(modelolm8)
+
+# Ajustando o modelo
+?expand.grid
+?trainControl
+controle1 <- trainControl(method = "cv", number = 100)
+
+modelolm_v2 <- train(totalValue ~ ., data = dados_treino, method = "lm", 
+                     trControl = controle1, 
+                     metric = "Rsquared")
+
+# Resumo do modelo
+summary(modelolm_v2)
+
+# Coletando os residuos
+residuals <- resid(modelolm)
+
+# Previsoes
+?predict
+predictedValues <- predict(modelolm)
+predictedValues <- predict(modelolm7)
+plot(dados_treino$totalValue, predictedValues)
+
+# Mostrando a importancia das variaveis para a criacao do modelo
+?varImp
+varImp(modelolm)
+varImp(modelolm2)
+varImp(modelolm7)
+varImp(modelolm8)
+
+# Plot
+plot(varImp(modelolm))
+plot(varImp(modelolm2))
+plot(varImp(modelolm7))
+
+#######################################################################################
+
+#Suport Vector Machine
+
+
+## Treinando o Modelo
+install.packages("kernlab")
+library(kernlab)
+
+# Criando o modelo com o kernel vanilladot
+svm_regression <- ksvm(totalValue ~ ., data = dados_treino, kernel = "vanilladot")
+
+# Visualizando resultado do modelo
+svm_regression
+
+# Avaliando a performance do modelo
+svm_predictions <- predict(svm_regression, dados_teste)
+head(svm_predictions)
+table(svm_predictions, dados_teste$totalValue)
+
+# Criando um vetor de TRUE/FALSE indicando previsoes corretas/incorretas
+agreement <- svm_predictions == dados_teste$totalValue
+table(agreement)
+prop.table(table(agreement))
+
+## Otimizando o Modelo
+set.seed(12345)
+
+# Recriando o modelo com outro tipo de kernel
+svm_regression_rbf <- ksvm(totalValue ~ ., data = dados_treino, kernel = "rbfdot")
+
+# Novas previsoes
+svm_predictions_rbf <- predict(svm_regression_rbf, dados_teste)
+
+# Compare os resultados com a primeira versao do modelo
+agreement_rbf <- svm_predictions_rbf == dados_teste$totalValue
+table(agreement_rbf)
+prop.table(table(agreement_rbf))
+
+
+
