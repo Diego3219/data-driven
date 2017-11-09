@@ -1,28 +1,28 @@
-# Documenta??o Oficial
+# Documentação Oficial
 #https://developers.google.com/analytics/solutions/r-google-analytics
 
 # Instalando e ativando o pacote do Google Analytics para o R
 
-#Aplicando uma camada de Ci?ncia no Marketing Digital
+#Aplicando uma camada de Ciência no Marketing Digital
 
 # Instalando o Pacote
 library(needs)
 needs(RGoogleAnalytics)
 
 # Autorizar a conta do Google Analytics
-# Isso n?o precisa ser executado em cada sess?o uma vez que o objeto token criado
-# ? salvo
+# Isso não precisa ser executado em cada sessão uma vez que o objeto token criado
+# é salvo
 
-# Substitua as chaves pelas que voc? gerou no projeto da API
+# Substitua as chaves pelas que você gerou no projeto da API
 #https://console.developers.google.com
-client.id <-"743841725020-22q5cefd0666t724ebb1kfg4hturcl4a.apps.googleusercontent.com"
-client.secret <-"Dg94fUSt1-dCN6SLGqlYqjbB"
+client.id <-"xxx.apps.googleusercontent.com"
+client.secret <-"xxx"
 token <- Auth(client.id,client.secret)
 
-# Salvar o objeto token para sess?es futuras
+# Salvar o objeto token para sessões futuras
 save(token,file="./token_file")
 
-# Em sess?es futuras, ele pode ser carregado 
+# Em sessões futuras, ele pode ser carregado 
 load("./token_file")
 
 ValidateToken(token)
@@ -45,30 +45,31 @@ query.list <- Init(start.date = "2017-01-01",
                    ga:totalValue",
                    max.results = 10000,
                    sort = "ga:date",
-                   table.id = "ga:136578367")
+                   table.id = "ga:xxx")
                    
 
 
 # Crie o objeto Query Builder para que os par?metros de consulta sejam validados
 ga.query <- QueryBuilder(query.list)
 
-# Extrair os dados e armazen?-los em um data-frame
+# Extrair os dados e armazená-los em um data-frame
 ga.data <- GetReportData(ga.query, token, paginate_query = F)
 head(ga.data)
 
-#Gravar os dados em outra vari?vel ? uma boa pr?tica, pois em caso de neccessidade,
-#os dados originais continuam armazenados e dispon?veis.
+#Gravar os dados em outra variável é uma boa prática, pois em caso de neccessidade,
+#os dados originais continuam armazenados e disponíveis.
 analytics <- data.frame(ga.data)
 head(analytics)
 
 #explorando a estrutura dos dados
 str(analytics)
 
-#os dados vir?o brutos e em formatos que n?o permitem as an?lises, portanto ? preciso transform?-los!
+#os dados virão brutos e em formatos que não permitem as análises, portanto é 
+#preciso transformá-los!
 
 #transformando a primeira coluna em Data
 class(analytics$date)
-#pode ser necess?rio instalar o pacote antes de utiliz?-lo
+#pode ser necessário instalar o pacote antes de utilizá-lo
 needs(lubridate)
 analytics$date <- ymd(analytics$date)
 class(analytics$date)
@@ -79,25 +80,25 @@ any(is.na(analytics))
 analytics$dayOfWeek <- as.numeric(analytics$dayOfWeek)
 analytics$dayOfWeek <- factor(analytics$dayOfWeek, labels = c("Domingo","Segunda","Ter?a","Quarta","Quinta","Sexta","S?bado"))
 
-#arredondar as colunas que representam valor monet?rio
+#arredondar as colunas que representam valor monetário
 analytics$CPC <- round(analytics$CPC,2)
 analytics$adCost <- round(analytics$adCost,2)
 analytics$costPerTransaction <- round(analytics$costPerTransaction,2)
 analytics$totalValue <- round(analytics$totalValue,2)
 str(analytics)
 
-# Aqui come?a a constru??o do Modelo Predittivo
-# An?lise explorat?ria dos dados
+# Aqui começa a construção do Modelo Predittivo
+# Análise exploratória dos dados
 
-# Pequenas An?lises
+# Pequenas Análises
 dispositivo <- table(analytics$deviceCategory)
 (dispositivo <- round((prop.table(dispositivo) * 100)))
 dia <-  table(analytics$dayOfWeek)
 (dia <- round(prop.table(dia) * 100))
 
-# Constru??o de alguns gr?ficos para an?lises visuais
-# Transa??es x potenciais variaveis 
-# Pode ser necess?rio instalar o pacote
+# Construção de alguns gráficos para análises visuais
+# Transações x potenciais variáveis 
+# Pode ser necessário instalar o pacote
 needs(ggplot2)
 labels <- list("Boxplots - Transa??es por Origem",
                "Boxplots - Transa??es por M?dia",
@@ -106,7 +107,7 @@ labels <- list("Boxplots - Transa??es por Origem",
 
 xAxis <- list("source", "medium", "deviceCategory", "dayOfWeek")
 
-# Gr?ficos
+# Gráficos
 plot.scatter <- function(X, label){ 
   ggplot(analytics, aes_string(x = X, y = "totalValue")) + 
     geom_point(aes_string(colour = "totalValue"), alpha = 0.1) + 
@@ -118,36 +119,36 @@ plot.scatter <- function(X, label){
 Map(plot.scatter, xAxis, labels)
 
 # Obtendo apenas as colunas num?ricas
-# Pode ser necess?rio instalar o pacote
+# Pode ser necessário instalar o pacote
 needs(dplyr)
 analytics_numericas <- sapply(analytics,is.numeric)
 analytics <- analytics[, analytics_numericas]
 
-#An?lise de Correla??o
+#Análise de Correlação
 
 par(mfrow=c(1,1))
 data_cor <- cor(analytics)
 data_cor
-# Pode ser necess?rio instalar o pacote
+# Pode ser necessário instalar o pacote
 needs(corrplot)
-# Pode ser necess?rio instalar o pacote
+# Pode ser necessário instalar o pacote
 needs(corrgram)
 corrplot(data_cor, method = 'circle')
-# Alternativas de gr?ficos
+# Alternativas de gráficos
 #corrgram(analytics)
 #corrgram(analytics, order = T, lower.panel = panel.shade, 
 #         upper.panel = panel.pie, text.panel = panel.txt)
 #pairs(data_cor, panel = panel.smooth)
 
-# Alternativa de Regress?o Simples
+# Alternativa de Regressão Simples
 
-# Selecionando as v?riaveis
+# Selecionando as váriaveis
 a <- analytics$adClicks
 b <- analytics$totalValue
 c <- data.frame(a,b)
 
 # Dividindo os dados para o modelo
-# Pode ser necess?rio instalar o pacote
+# Pode ser necessário instalar o pacote
 needs(caTools)
 set.seed(100)
 amostra <- sample.split(c$a, SplitRatio = 0.70)
@@ -155,20 +156,20 @@ treino = subset(c, amostra = T)
 teste = subset(c, amostra = F)
 
 
-# Construindo o modelo de regress?o
+# Construindo o modelo de regressão
 modelo <- lm(b ~ a, treino)
 summary(modelo)
 #plot(modelo)
 
-# Plotando o gr?fico de dispers?o com a reta de regress?o
+# Plotando o gráfico de dispersão com a reta de regressão
 k <- coefficients(modelo)
 plot(a,b)
 abline(k)
 
-#fazendo as predi??es
+#fazendo as predições
 #modelo <- lm(b ~ a, treino)
 prevendo_totalValue <- predict(modelo,teste)
-sum(prevendo_totalValue)
+(sum(prevendo_totalValue))
 
 # Alterando o Valor para responder a pergunta do problema formulado
 #venda_previsto <- data.frame(x=20000)
@@ -217,7 +218,7 @@ mean(b1)
 library(caret)
 
 
-# Funcao do Caret para divisao dos dados
+# Função do Caret para divisão dos dados
 #?createDataPartition
 split <- createDataPartition(y = analytics$totalValue , p = 0.7, list = FALSE)
 
@@ -238,14 +239,14 @@ modelolm2 <- train(totalValue ~ ., data = dados_treino, method = "glm")
 # Random forest
 modelolm3 <- train(totalValue ~ ., data = dados_treino, method = "rf")
 
-# Neural
+# Monotone Multi-Layer Perceptron Neural Network
 modelolm4 <- train(totalValue ~ ., data = dados_treino, method = "monmlp")
 
 # Multi Layer Percepton
 modelolm5 <- train(totalValue ~ ., data = dados_treino, method = "mlp")
 
 # Neural Network
-modelolm6 <- train(totalValue ~ ., data = dados_treino, method = "mxnet")
+modelolm6 <- train(totalValue ~ ., data = dados_treino, method = "neuralnet")
 
 # Neural Network
 modelolm7 <- train(totalValue ~ ., data = dados_treino, method = "nnet")
@@ -257,86 +258,143 @@ modelolm8 <- train(totalValue ~ ., data = dados_treino, method = "dnn")
 modelolm9 <- train(totalValue ~ ., data = dados_treino, method = "gbm")
 
 # Suport Vector Machine
+library(kernlab)
 modelolm10 <- train(totalValue ~ ., data = dados_treino, method = "svmLinear")
 
 # Resumo do modelo
-summary(modelolm)
-summary(modelolm2)
-summary(modelolm3)
-summary(modelolm7)
-summary(modelolm8)
+summary(modelolm)   # Regressão linear
+summary(modelolm2)  # Regressão logistica
+summary(modelolm3)  # Random forest
+summary(modelolm4)  # Monotone Multi-Layer Perceptron Neural Network
+summary(modelolm5)  # Multi Layer Percepton
+summary(modelolm6)  # Neural Network
+summary(modelolm7)  # Neural Network
+summary(modelolm8)  # Deep Neural 
+summary(modelolm9)  # Stocastic Gradient Boosting
+summary(modelolm10) # Suport Vector Machine
 
 # Ajustando o modelo
-?expand.grid
-?trainControl
-controle1 <- trainControl(method = "cv", number = 100)
+#?expand.grid
+#?trainControl
+#controle1 <- trainControl(method = "cv", number = 100)
 
-modelolm_v2 <- train(totalValue ~ ., data = dados_treino, method = "lm", 
-                     trControl = controle1, 
-                     metric = "Rsquared")
+#modelolm_v2 <- train(totalValue ~ ., data = dados_treino, method = "lm", 
+#                     trControl = controle1, 
+#                     metric = "Rsquared")
 
 # Resumo do modelo
-summary(modelolm_v2)
+#summary(modelolm_v2)
 
 # Coletando os residuos
-residuals <- resid(modelolm)
+#(residuals <- resid(modelolm))
 
-# Previsoes
+# Previsões
 ?predict
-predictedValues <- predict(modelolm)
-predictedValues <- predict(modelolm7)
+(predictedValues <- predict(modelolm))
+(predictedValues <- predict(modelolm7))
 plot(dados_treino$totalValue, predictedValues)
 
-# Mostrando a importancia das variaveis para a criacao do modelo
-?varImp
-varImp(modelolm)
-varImp(modelolm2)
-varImp(modelolm7)
-varImp(modelolm8)
+# Mostrando a importância das variáveis para a criação do modelo
+#?varImp
+library(caret)
+varImp(modelolm)   # Regressão linear
+varImp(modelolm2)  # Regressão logistica
+varImp(modelolm3)  # Random forest
+varImp(modelolm4)  # Monotone Multi-Layer Perceptron Neural Network
+varImp(modelolm5)  # Multi Layer Percepton
+varimp(modelolm6)  # Neural Network
+varImp(modelolm7)  # Neural Network
+varImp(modelolm8)  # Deep Neural 
+varImp(modelolm9)  # Stocastic Gradient Boosting
+varImp(modelolm10) # Suport Vector Machine
 
 # Plot
-plot(varImp(modelolm))
-plot(varImp(modelolm2))
-plot(varImp(modelolm7))
+plot(varImp(modelolm))   # Regressão linear
+plot(varImp(modelolm2))  # Regressão logistica
+plot(varImp(modelolm6))  # Neural Network
+plot(varImp(modelolm7))  # Neural Network
+plot(varImp(modelolm10)) # Suport Vector Machine
+
+#fazendo as predições
+modelo_ajustado <- lm(totalValue ~ transactions + sessions + users + costPerTransaction
+                      + CPC, dados_treino)
+(summary(modelo_ajustado))
+prevendo_totalValue <- predict(modelo,dados_teste)
+(sum(prevendo_totalValue))
+(sum(analytics$totalValue))
 
 #######################################################################################
 
-#Suport Vector Machine
+# Carregando o pacote para Redes Neurais
+#install.packages("neuralnet")
+library(neuralnet)
+
+# Como primeiro passo, vamos abordar o pre-processamento de dados. 
+# Eh uma boa pratica normalizar seus dados antes de treinar uma rede neural. 
+# Dependendo do seu conjunto de dados, evitando a normalizacao pode levar a 
+# resultados inuteis ou a um processo de treinamento muito dificil 
+# (na maioria das vezes o algoritmo não ira convergir antes do numero de iteracoes
+# maximo permitido). Voce pode escolher diferentes metodos para dimensionar os 
+# dados (normalizacao-z, escala min-max, etc ...). 
+# Normalmente escala nos intervalos [0,1] ou [1,1] tende a dar melhores resultados. 
+
+dados <- analytics
+
+# Normalizacao 
+maxs <- apply(dados, 2, max) 
+mins <- apply(dados, 2, min)
+
+# Imprimindo os valores
+maxs
+mins
+
+# Normalizando
+dados_normalizados <- as.data.frame(scale(dados, center = mins, scale = maxs - mins))
+head(dados_normalizados)
+
+# Criando os dados de treino e de teste
+#install.packages("caTools")
+library(caTools)
+split = sample.split(dados_normalizados$totalValue, SplitRatio = 0.70)
+
+treino = subset(dados_normalizados, split == TRUE)
+teste = subset(dados_normalizados, split == FALSE)
+
+# Obtendo o nome das colunas
+(coluna_nomes <- names(treino))
+
+# Agregando
+(formula <- as.formula(paste("totalValue ~", paste(coluna_nomes[!coluna_nomes %in% "totalValue"], collapse = " + "))))
 
 
-## Treinando o Modelo
-install.packages("kernlab")
-library(kernlab)
+# Treinando o Modelo
+rede_neural <- neuralnet(formula, data = treino, hidden = c(5,3), linear.output = TRUE)
 
-# Criando o modelo com o kernel vanilladot
-svm_regression <- ksvm(totalValue ~ ., data = dados_treino, kernel = "vanilladot")
+# Plot
+plot(rede_neural)
 
-# Visualizando resultado do modelo
-svm_regression
+# Fazendo previsoes com os dados de teste
+rede_neural_prev <- compute(rede_neural, teste[1:9])
 
-# Avaliando a performance do modelo
-svm_predictions <- predict(svm_regression, dados_teste)
-head(svm_predictions)
-table(svm_predictions, dados_teste$totalValue)
+# O retorno da previsao da Rede Neural eh uma lista
+str(rede_neural_prev)
 
-# Criando um vetor de TRUE/FALSE indicando previsoes corretas/incorretas
-agreement <- svm_predictions == dados_teste$totalValue
-table(agreement)
-prop.table(table(agreement))
+# Convertendo os dados de teste
+previsoes <- rede_neural_prev$net.result * (max(dados$totalValue) - min(dados$totalValue)) + min(dados$totalValue)
+teste_convert <- (teste$totalValue) * (max(dados$totalValue) - min(dados$totalValue)) + min(dados$totalValue)
 
-## Otimizando o Modelo
-set.seed(12345)
-
-# Recriando o modelo com outro tipo de kernel
-svm_regression_rbf <- ksvm(totalValue ~ ., data = dados_treino, kernel = "rbfdot")
-
-# Novas previsoes
-svm_predictions_rbf <- predict(svm_regression_rbf, dados_teste)
-
-# Compare os resultados com a primeira versao do modelo
-agreement_rbf <- svm_predictions_rbf == dados_teste$totalValue
-table(agreement_rbf)
-prop.table(table(agreement_rbf))
+# Calculando o Mean Squared Error
+(MSE.nn <- sum((teste_convert - previsoes)^2)/nrow(teste))
 
 
+# Obtendo os erros de previsao
+error.df <- data.frame(teste_convert, previsoes)
+head(error.df)
+
+# Plot dos erros
+library(ggplot2)
+ggplot(error.df, aes(x = teste_convert,y = previsoes)) + 
+  geom_point() + stat_smooth()
+
+#################################################################################################
 
