@@ -371,6 +371,7 @@ teste = subset(dados_normalizados, split == FALSE)
 rede_neural <- neuralnet(formula, data = treino, hidden = c(5,3), linear.output = TRUE)
 
 # Plot
+
 plot(rede_neural)
 
 # Fazendo previsoes com os dados de teste
