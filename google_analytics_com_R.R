@@ -45,7 +45,7 @@ query.list <- Init(start.date = "2017-01-01",
                    ga:totalValue",
                    max.results = 10000,
                    sort = "ga:date",
-                   table.id = "ga:xxx")
+                   table.id = "ga:136578367")
                    
 
 
@@ -100,10 +100,10 @@ dia <-  table(analytics$dayOfWeek)
 # Transações x potenciais variáveis 
 # Pode ser necessário instalar o pacote
 needs(ggplot2)
-labels <- list("Boxplots - Transa??es por Origem",
-               "Boxplots - Transa??es por M?dia",
-               "Boxplots - Transa??es por Dia Dispositivo",
-               "Boxplots - Transa??es por Dia da Semana")
+labels <- list("Boxplots - Transações por Origem",
+               "Boxplots - Transações por Mídia",
+               "Boxplots - Transações por Dia Dispositivo",
+               "Boxplots - Transações por Dia da Semana")
 
 xAxis <- list("source", "medium", "deviceCategory", "dayOfWeek")
 
@@ -170,11 +170,12 @@ abline(k)
 #modelo <- lm(b ~ a, treino)
 prevendo_totalValue <- predict(modelo,teste)
 (sum(prevendo_totalValue))
+sum(analytics$totalValue)
 
 # Alterando o Valor para responder a pergunta do problema formulado
 #venda_previsto <- data.frame(x=20000)
 #y = a + bx
-(venda_previsto <- k[1] + k[2]*30000)
+(venda_previsto <- k[1] + k[2]*34000)
 (sum(analytics$totalValue))
 (sum(analytics$adCost))
 #previsao_1 <- predict(modelo, venda_previsto)
