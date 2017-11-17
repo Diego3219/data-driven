@@ -78,7 +78,7 @@ any(is.na(analytics))
 
 # Criar um fator ordenado para o dia da semana
 analytics$dayOfWeek <- as.numeric(analytics$dayOfWeek)
-analytics$dayOfWeek <- factor(analytics$dayOfWeek, labels = c("Domingo","Segunda","Ter?a","Quarta","Quinta","Sexta","S?bado"))
+analytics$dayOfWeek <- factor(analytics$dayOfWeek, labels = c("Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"))
 
 #arredondar as colunas que representam valor monetário
 analytics$CPC <- round(analytics$CPC,2)
@@ -290,14 +290,15 @@ summary(modelolm10) # Suport Vector Machine
 #(residuals <- resid(modelolm))
 
 # Previsões
-?predict
-(predictedValues <- predict(modelolm))
-(predictedValues <- predict(modelolm7))
-plot(dados_treino$totalValue, predictedValues)
+#?predict
+#(predictedValues <- predict(modelolm))
+#(predictedValues <- predict(modelolm7))
+#plot(dados_treino$totalValue, predictedValues)
 
 # Mostrando a importância das variáveis para a criação do modelo
 #?varImp
 library(caret)
+
 varImp(modelolm)   # Regressão linear
 varImp(modelolm2)  # Regressão logistica
 varImp(modelolm3)  # Random forest
@@ -384,6 +385,7 @@ str(rede_neural_prev)
 # Convertendo os dados de teste
 previsoes <- rede_neural_prev$net.result * (max(dados$totalValue) - min(dados$totalValue)) + min(dados$totalValue)
 teste_convert <- (teste$totalValue) * (max(dados$totalValue) - min(dados$totalValue)) + min(dados$totalValue)
+sum(teste_convert)
 
 # Calculando o Mean Squared Error
 (MSE.nn <- sum((teste_convert - previsoes)^2)/nrow(teste))
